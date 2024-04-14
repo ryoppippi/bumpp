@@ -1,5 +1,8 @@
 import process from 'node:process'
+import fs from 'node:fs/promises'
+import fsSync from 'node:fs'
 import fg from 'fast-glob'
+import yaml from 'js-yaml'
 import type { ReleaseType } from './release-type'
 import { isReleaseType } from './release-type'
 import type { VersionBumpOptions } from './types/version-bump-options'
@@ -74,6 +77,7 @@ export async function normalizeOptions(raw: VersionBumpOptions): Promise<Normali
   const cwd = raw.cwd || process.cwd()
   const ignoreScripts = Boolean(raw.ignoreScripts)
   const execute = raw.execute
+  const recursive = Boolean(raw.recursive)
 
   let release: Release
   if (!raw.release || raw.release === 'prompt')
@@ -100,10 +104,37 @@ export async function normalizeOptions(raw: VersionBumpOptions): Promise<Normali
   else if (raw.commit || tag || push)
     commit = { all, noVerify, message: 'chore: release v' }
 
-  const files = await fg(
-    raw.files?.length
+  if (recursive && !raw.files?.length) {
+    raw.files = [
+      'package.json',
+      'package-lock.json',
+      'packages/**/package.json',
+      'jsr.json',
+      'jsr.jsonc',
+    ]
+
+    // check if pnpm-workspace.yaml exists, if so, add all workspaces to files
+    if (fsSync.existsSync('pnpm-workspace.yaml')) {
+      // read pnpm-workspace.yaml
+      const pnpmWorkspace = await fs.readFile('pnpm-workspace.yaml', 'utf8')
+      // parse yaml
+      const workspaces = yaml.load(pnpmWorkspace) as { packages: string[] }
+      // append package.json to each workspace string
+      const workspacesWithPackageJson = workspaces.packages.map(workspace => `${workspace}/package.json`)
+      // start with ! or already in files should be excluded
+      const withoutExcludedWorkspaces = workspacesWithPackageJson.filter(workspace => !workspace.startsWith('!') && !raw.files?.includes(workspace))
+      // add to files
+      raw.files = raw.files.concat(withoutExcludedWorkspaces)
+    }
+  }
+  else {
+    raw.files = raw.files?.length
       ? raw.files
-      : ['package.json', 'package-lock.json', 'jsr.json', 'jsr.jsonc'],
+      : ['package.json', 'package-lock.json', 'jsr.json', 'jsr.jsonc']
+  }
+
+  const files = await fg(
+    raw.files,
     {
       cwd,
       onlyFiles: true,
