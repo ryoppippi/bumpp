@@ -53,7 +53,7 @@ async function readVersion(file: string, cwd: string): Promise<string | undefine
         return manifest.version
     }
   }
-  catch (error) {
+  catch {
     // Ignore errors (no such file, not valid JSON, etc.)
     // Just try the next file instead.
     return undefined

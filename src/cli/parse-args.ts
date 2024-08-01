@@ -93,8 +93,8 @@ export function loadCliArgs(argv = process.argv) {
   const rawArgs = cli.rawArgs
   const args = result.options
 
-  const COMMIT_REG = /(-c|--commit|--no-commit)(=.*|$)/
-  const TAG_REG = /(-t|--tag|--no-tag)(=.*|$)/
+  const COMMIT_REG = /(?:-c|--commit|--no-commit)(?:=.*|$)/
+  const TAG_REG = /(?:-t|--tag|--no-tag)(?:=.*|$)/
   const hasCommitFlag = rawArgs.some(arg => COMMIT_REG.test(arg))
   const hasTagFlag = rawArgs.some(arg => TAG_REG.test(arg))
 
