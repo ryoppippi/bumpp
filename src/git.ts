@@ -51,6 +51,10 @@ export async function gitTag(operation: Operation): Promise<Operation> {
     // See https://git-scm.com/docs/git-tag
     '--annotate',
 
+    // Sign the tag with a GPG key, if one is configured
+    // See https://git-scm.com/docs/git-tag#Documentation/git-tag.txt---sign
+    '--sign', // Sign the tag with a GPG key
+
     // Use the same commit message for the tag
     '--message',
     formatVersionString(commit!.message, newVersion),
