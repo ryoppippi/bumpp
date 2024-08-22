@@ -8,6 +8,7 @@ import { ProgressEvent } from './types/version-bump-progress'
  * Updates the version number in the specified files.
  */
 export async function updateFiles(operation: Operation): Promise<Operation> {
+  console.log({ operation })
   const { files } = operation.options
 
   for (const relPath of files) {
