@@ -1,7 +1,7 @@
 {
   "name": "bumpp",
   "version": "9.5.1",
-  "packageManager": "pnpm@9.7.0",
+  "packageManager": "pnpm@9.8.0",
   "description": "Bump version, commit changes, tag, and push to Git",
   "author": {
     "name": "James Messinger",
@@ -70,9 +70,9 @@
     "semver": "^7.6.3"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.25.1",
+    "@antfu/eslint-config": "^2.27.0",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^22.2.0",
+    "@types/node": "^22.5.0",
     "@types/prompts": "^2.4.9",
     "@types/semver": "^7.5.8",
     "eslint": "^9.9.0",
