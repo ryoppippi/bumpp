@@ -6,6 +6,7 @@ import * as ezSpawn from '@jsdevtools/ez-spawn'
 import c from 'picocolors'
 import prompts from 'prompts'
 import semver, { clean as cleanVersion, valid as isValidVersion, SemVer } from 'semver'
+import { printRecentCommits } from './print-commits'
 import { isPrerelease, releaseTypes } from './release-type'
 
 /**
@@ -152,121 +153,4 @@ async function promptForNewVersion(operation: Operation): Promise<Operation> {
     default:
       return operation.update({ release: answers.release, newVersion })
   }
-}
-
-const messageColorMap: Record<string, (c: string) => string> = {
-  chore: c.gray,
-  fix: c.yellow,
-  feat: c.green,
-  refactor: c.cyan,
-  docs: c.blue,
-  doc: c.blue,
-  ci: c.gray,
-  build: c.gray,
-}
-
-export async function printRecentCommits(operation: Operation): Promise<void> {
-  let sha: string | undefined
-  sha ||= await ezSpawn
-    .async(
-      'git',
-      ['rev-list', '-n', '1', `v${operation.state.currentVersion}`],
-      { stdio: 'pipe' },
-    )
-    .then(res => res.stdout.trim())
-    .catch(() => undefined)
-  sha ||= await ezSpawn
-    .async(
-      'git',
-      ['rev-list', '-n', '1', operation.state.currentVersion],
-      { stdio: 'pipe' },
-    )
-    .then(res => res.stdout.trim())
-    .catch(() => undefined)
-
-  if (!sha) {
-    console.log(
-      c.blue(`i`)
-      + c.gray(` Failed to locate the previous tag ${c.yellow(`v${operation.state.currentVersion}`)}`),
-    )
-    return
-  }
-
-  const message = await ezSpawn.async(
-    'git',
-    [
-      '--no-pager',
-      'log',
-      `${sha}..HEAD`,
-      '--oneline',
-    ],
-    { stdio: 'pipe' },
-  )
-
-  const lines = message
-    .stdout
-    .toString()
-    .trim()
-    .split(/\n/g)
-
-  if (!lines.length) {
-    console.log()
-    console.log(c.blue(`i`) + c.gray(` No commits since ${operation.state.currentVersion}`))
-    console.log()
-    return
-  }
-
-  interface ParsedCommit {
-    hash: string
-    tag: string
-    message: string
-    color: (c: string) => string
-  }
-
-  const parsed = lines.map((line): ParsedCommit => {
-    const [hash, ...parts] = line.split(' ')
-    const message = parts.join(' ')
-    const match = message.match(/^(\w+)(\([^)]+\))?(!)?:(.*)$/)
-    if (match) {
-      let color = messageColorMap[match[1].toLowerCase()] || ((c: string) => c)
-      if (match[3] === '!') {
-        color = c.red
-      }
-      const tag = [match[1], match[2], match[3]].filter(Boolean).join('')
-      return {
-        hash,
-        tag,
-        message: match[4].trim(),
-        color,
-      }
-    }
-    return {
-      hash,
-      tag: '',
-      message,
-      color: c => c,
-    }
-  })
-  const tagLength = parsed.map(({ tag }) => tag.length).reduce((a, b) => Math.max(a, b), 0)
-  const prettified = parsed.map(({ hash, tag, message, color }) => {
-    const paddedTag = tag.padStart(tagLength + 2, ' ')
-    return [
-      c.dim(hash),
-      ' ',
-      color === c.gray ? color(paddedTag) : c.bold(color(paddedTag)),
-      c.dim(':'),
-      ' ',
-      color === c.gray ? color(message) : message,
-    ].join('')
-  })
-
-  console.log()
-  console.log(
-    c.bold(
-      `${c.green(lines.length)} Commits since ${c.gray(sha.slice(0, 7))}:`,
-    ),
-  )
-  console.log()
-  console.log(prettified.reverse().join('\n'))
-  console.log()
 }
