@@ -216,7 +216,14 @@ export async function printRecentCommits(operation: Operation): Promise<void> {
     return
   }
 
-  const parsed = lines.map((line) => {
+  interface ParsedCommit {
+    hash: string
+    tag: string
+    message: string
+    color: (c: string) => string
+  }
+
+  const parsed = lines.map((line): ParsedCommit => {
     const [hash, ...parts] = line.split(' ')
     const message = parts.join(' ')
     const match = message.match(/^(\w+)(\([^)]+\))?(!)?:(.*)$/)
@@ -225,17 +232,34 @@ export async function printRecentCommits(operation: Operation): Promise<void> {
       if (match[3] === '!') {
         color = c.red
       }
-      return [
-        c.dim(hash),
-        ' ',
-        c.bold(color([match[1], match[2], match[3]].filter(Boolean).join('').padStart(7, ' '))),
-        c.dim(':'),
-        ' ',
-        color === c.gray ? color(match[4].trim()) : match[4].trim(),
-      ].join('')
+      const tag = [match[1], match[2], match[3]].filter(Boolean).join('')
+      return {
+        hash,
+        tag,
+        message: match[4].trim(),
+        color,
+      }
     }
-    return `${c.gray(hash)} ${message}`
+    return {
+      hash,
+      tag: '',
+      message,
+      color: c => c,
+    }
   })
+  const tagLength = parsed.map(({ tag }) => tag.length).reduce((a, b) => Math.max(a, b), 0)
+  const prettified = parsed.map(({ hash, tag, message, color }) => {
+    const paddedTag = tag.padStart(tagLength + 2, ' ')
+    return [
+      c.dim(hash),
+      ' ',
+      color === c.gray ? color(paddedTag) : c.bold(color(paddedTag)),
+      c.dim(':'),
+      ' ',
+      color === c.gray ? color(message) : message,
+    ].join('')
+  })
+
   console.log()
   console.log(
     c.bold(
@@ -243,6 +267,6 @@ export async function printRecentCommits(operation: Operation): Promise<void> {
     ),
   )
   console.log()
-  console.log(parsed.join('\n'))
+  console.log(prettified.reverse().join('\n'))
   console.log()
 }
