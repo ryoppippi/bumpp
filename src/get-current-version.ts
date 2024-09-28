@@ -1,7 +1,7 @@
+import type { Operation } from './operation'
 import { valid as isValidVersion } from 'semver'
 import { readJsoncFile } from './fs'
 import { isManifest } from './manifest'
-import type { Operation } from './operation'
 
 /**
  * Finds the current version number from files such as package.json.

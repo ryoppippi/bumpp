@@ -1,9 +1,9 @@
 import type { NormalizedOptions } from './normalize-options'
-import { normalizeOptions } from './normalize-options'
 import type { ReleaseType } from './release-type'
 import type { VersionBumpOptions } from './types/version-bump-options'
 import type { NpmScript, ProgressEvent, VersionBumpProgress } from './types/version-bump-progress'
 import type { VersionBumpResults } from './types/version-bump-results'
+import { normalizeOptions } from './normalize-options'
 
 type ProgressCallback = (progress: VersionBumpProgress) => void
 

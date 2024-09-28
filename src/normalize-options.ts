@@ -1,11 +1,11 @@
-import process from 'node:process'
-import fs from 'node:fs/promises'
+import type { ReleaseType } from './release-type'
+import type { VersionBumpOptions } from './types/version-bump-options'
 import fsSync from 'node:fs'
+import fs from 'node:fs/promises'
+import process from 'node:process'
 import fg from 'fast-glob'
 import yaml from 'js-yaml'
-import type { ReleaseType } from './release-type'
 import { isReleaseType } from './release-type'
-import type { VersionBumpOptions } from './types/version-bump-options'
 
 interface Interface {
   input?: NodeJS.ReadableStream | NodeJS.ReadStream | false
@@ -61,6 +61,7 @@ export interface NormalizedOptions {
   interface: Interface
   ignoreScripts: boolean
   execute?: string
+  printCommits?: boolean
   customVersion?: VersionBumpOptions['customVersion']
   currentVersion?: string
 }
@@ -178,6 +179,7 @@ export async function normalizeOptions(raw: VersionBumpOptions): Promise<Normali
     interface: ui,
     ignoreScripts,
     execute,
+    printCommits: raw.printCommits ?? true,
     customVersion: raw.customVersion,
     currentVersion: raw.currentVersion,
   }

@@ -1,9 +1,9 @@
-import * as ezSpawn from '@jsdevtools/ez-spawn'
-import { readJsoncFile } from './fs'
 import type { Manifest } from './manifest'
-import { isManifest } from './manifest'
 import type { Operation } from './operation'
 import type { NpmScript } from './types/version-bump-progress'
+import * as ezSpawn from '@jsdevtools/ez-spawn'
+import { readJsoncFile } from './fs'
+import { isManifest } from './manifest'
 import { ProgressEvent } from './types/version-bump-progress'
 
 /**

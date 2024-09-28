@@ -1,8 +1,8 @@
-import * as path from 'node:path'
+import type { Operation } from './operation'
 import { existsSync } from 'node:fs'
+import * as path from 'node:path'
 import { readJsoncFile, readTextFile, writeJsoncFile, writeTextFile } from './fs'
 import { isManifest, isPackageLockManifest } from './manifest'
-import type { Operation } from './operation'
 import { ProgressEvent } from './types/version-bump-progress'
 
 /**

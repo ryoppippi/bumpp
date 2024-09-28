@@ -1,11 +1,11 @@
+import type { VersionBumpOptions } from '../types/version-bump-options'
 import process from 'node:process'
-import { valid as isValidVersion } from 'semver'
 import cac from 'cac'
 import c from 'picocolors'
-import { isReleaseType } from '../release-type'
-import type { VersionBumpOptions } from '../types/version-bump-options'
+import { valid as isValidVersion } from 'semver'
 import { version } from '../../package.json'
 import { bumpConfigDefaults, loadBumpConfig } from '../config'
+import { isReleaseType } from '../release-type'
 import { ExitCode } from './exit-code'
 
 /**
@@ -86,6 +86,7 @@ export function loadCliArgs(argv = process.argv) {
     .option('-q, --quiet', 'Quiet mode')
     .option('-v, --version <version>', 'Target version')
     .option('--current-version <version>', 'Current version')
+    .option('--print-commits', 'Print recent commits', { default: true })
     .option('-x, --execute <command>', 'Commands to execute after version bumps')
     .help()
 

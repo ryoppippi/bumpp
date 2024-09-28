@@ -1,10 +1,11 @@
-import process from 'node:process'
-import c from 'picocolors'
-import prompts from 'prompts'
-import semver, { SemVer, clean as cleanVersion, valid as isValidVersion } from 'semver'
 import type { BumpRelease, PromptRelease } from './normalize-options'
 import type { Operation } from './operation'
 import type { ReleaseType } from './release-type'
+import process from 'node:process'
+import * as ezSpawn from '@jsdevtools/ez-spawn'
+import c from 'picocolors'
+import prompts from 'prompts'
+import semver, { clean as cleanVersion, valid as isValidVersion, SemVer } from 'semver'
 import { isPrerelease, releaseTypes } from './release-type'
 
 /**
@@ -88,6 +89,10 @@ async function promptForNewVersion(operation: Operation): Promise<Operation> {
   const next = getNextVersions(currentVersion, release.preid)
   const configCustomVersion = await operation.options.customVersion?.(currentVersion, semver)
 
+  if (operation.options.printCommits) {
+    await printRecentCommits(operation)
+  }
+
   const PADDING = 13
   const answers = await prompts([
     {
@@ -147,4 +152,97 @@ async function promptForNewVersion(operation: Operation): Promise<Operation> {
     default:
       return operation.update({ release: answers.release, newVersion })
   }
+}
+
+const messageColorMap: Record<string, (c: string) => string> = {
+  chore: c.gray,
+  fix: c.yellow,
+  feat: c.green,
+  refactor: c.cyan,
+  docs: c.blue,
+  doc: c.blue,
+  ci: c.gray,
+  build: c.gray,
+}
+
+export async function printRecentCommits(operation: Operation): Promise<void> {
+  let sha: string | undefined
+  sha ||= await ezSpawn
+    .async(
+      'git',
+      ['rev-list', '-n', '1', `v${operation.state.currentVersion}`],
+      { stdio: 'pipe' },
+    )
+    .then(res => res.stdout.trim())
+    .catch(() => undefined)
+  sha ||= await ezSpawn
+    .async(
+      'git',
+      ['rev-list', '-n', '1', operation.state.currentVersion],
+      { stdio: 'pipe' },
+    )
+    .then(res => res.stdout.trim())
+    .catch(() => undefined)
+
+  if (!sha) {
+    console.log(
+      c.blue(`i`)
+      + c.gray(` Failed to locate the previous tag ${c.yellow(`v${operation.state.currentVersion}`)}`),
+    )
+    return
+  }
+
+  const message = await ezSpawn.async(
+    'git',
+    [
+      '--no-pager',
+      'log',
+      `${sha}..HEAD`,
+      '--oneline',
+    ],
+    { stdio: 'pipe' },
+  )
+
+  const lines = message
+    .stdout
+    .toString()
+    .trim()
+    .split(/\n/g)
+
+  if (!lines.length) {
+    console.log()
+    console.log(c.blue(`i`) + c.gray(` No commits since ${operation.state.currentVersion}`))
+    console.log()
+    return
+  }
+
+  const parsed = lines.map((line) => {
+    const [hash, ...parts] = line.split(' ')
+    const message = parts.join(' ')
+    const match = message.match(/^(\w+)(\([^)]+\))?(!)?:(.*)$/)
+    if (match) {
+      let color = messageColorMap[match[1].toLowerCase()] || ((c: string) => c)
+      if (match[3] === '!') {
+        color = c.red
+      }
+      return [
+        c.dim(hash),
+        ' ',
+        c.bold(color([match[1], match[2], match[3]].filter(Boolean).join('').padStart(7, ' '))),
+        c.dim(':'),
+        ' ',
+        color === c.gray ? color(match[4].trim()) : match[4].trim(),
+      ].join('')
+    }
+    return `${c.gray(hash)} ${message}`
+  })
+  console.log()
+  console.log(
+    c.bold(
+      `${c.green(lines.length)} Commits since ${c.gray(sha.slice(0, 7))}:`,
+    ),
+  )
+  console.log()
+  console.log(parsed.join('\n'))
+  console.log()
 }

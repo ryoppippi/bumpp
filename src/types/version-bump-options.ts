@@ -131,6 +131,11 @@ export interface VersionBumpOptions {
   recursive?: boolean
 
   /**
+   * Print recent commits
+   */
+  printCommits?: boolean
+
+  /**
    * Custom function to provide the version number
    */
   customVersion?: (currentVersion: string, semver: typeof _semver) => Promise<string | void> | string | void

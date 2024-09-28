@@ -1,8 +1,8 @@
-import process from 'node:process'
+import type { VersionBumpOptions } from './types/version-bump-options'
 import { dirname } from 'node:path'
+import process from 'node:process'
 import { loadConfig } from 'c12'
 import escalade from 'escalade/sync'
-import type { VersionBumpOptions } from './types/version-bump-options'
 
 export const bumpConfigDefaults: VersionBumpOptions = {
   commit: true,
