@@ -1,6 +1,7 @@
 import type { VersionBumpProgress } from '../types/version-bump-progress'
 import process from 'node:process'
 import symbols from 'log-symbols'
+import * as ezSpawn from '@jsdevtools/ez-spawn'
 import { version as packageVersion } from '../../package.json'
 import { ProgressEvent } from '../types/version-bump-progress'
 import { versionBump } from '../version-bump'
@@ -28,6 +29,10 @@ export async function main(): Promise<void> {
       process.exit(ExitCode.Success)
     }
     else {
+      if (!options.all && !options.noGitCheck) {
+        checkGitStatus()
+      }
+
       if (!quiet)
         options.progress = options.progress ? options.progress : progress
 
@@ -36,6 +41,13 @@ export async function main(): Promise<void> {
   }
   catch (error) {
     errorHandler(error as Error)
+  }
+}
+
+export function checkGitStatus() {
+  const { stdout } = ezSpawn.sync('git', ['status', '--porcelain'])
+  if (stdout.trim()) {
+    throw new Error(`Git working tree is not clean:\n${stdout}`)
   }
 }
 

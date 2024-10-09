@@ -14,6 +14,7 @@ export const bumpConfigDefaults: VersionBumpOptions = {
   confirm: true,
   ignoreScripts: false,
   all: false,
+  noGitCheck: true,
   files: [],
 }
 
