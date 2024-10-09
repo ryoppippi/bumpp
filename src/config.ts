@@ -32,7 +32,6 @@ export async function loadBumpConfig(
     },
     cwd: configFile ? dirname(configFile) : cwd,
   })
-  console.log(config)
   return config!
 }
 
