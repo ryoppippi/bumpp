@@ -15,7 +15,10 @@ export async function gitCommit(operation: Operation): Promise<Operation> {
   let args = ['--allow-empty']
 
   if (all) {
-    // Commit ALL files, not just the ones that were bumped
+    // `git commit --all` only stages already-tracked files, so it misses new
+    // files created by an `--execute` script (e.g. a generated changelog).
+    // Stage everything explicitly first so those are included too.
+    await x('git', ['add', '--all'], { throwOnError: true, nodeOptions: { stdio: 'inherit' } })
     args.push('--all')
   }
 
