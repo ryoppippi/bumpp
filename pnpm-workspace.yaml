@@ -1,9 +1,10 @@
-allowBuilds:
-  esbuild: false
+minimumReleaseAgeExcludePrune: true
 
-shellEmulator: true
 trustPolicy: no-downgrade
 trustPolicyIgnoreAfter: 10080 # 7 days
 update:
   ignoreDeps:
     - typescript@7
+shellEmulator: true
+allowBuilds:
+  esbuild: false
